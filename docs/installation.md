@@ -198,6 +198,69 @@ Please review their values in case of any compilation problems.
 
 The Makefiles for test programs can be a good starting point to find out correct compiler and linker options.
 
+## Building with Conan
+
+SOCI is available as a [Conan](https://docs.conan.io/en/latest/) package since
+February 2021 for the version [4.0.1](https://conan.io/center/soci) for the
+follwoiing backends: sqlite3, odbc, mysql, and postgresql, and with the
+following flag enabled: `SOCI_CXX11=True`.
+
+This section lists the steps required to use SOCI in a CMake project with Conan:
+
+### Install Conan
+
+Install Conan if it is not installed yet:
+
+```console
+pip3 install conan
+```
+
+### Create `conanfile.txt`
+
+Create a `conanfile.txt` in the same directory of the `CMakeLists.txt`, with a
+_reference to a recipe_ (which is a string with the library name and the
+version to use), the build options, and the CMake generator:
+
+```text
+# conanfile.txt
+[requires]
+soci/4.0.1
+
+[options]
+soci:shared       = True
+soci:with_sqlite3 = True
+
+[generators]
+cmake
+```
+
+The option `soci:with_sqlite3 = True` indicates that the `sqlite3` backend will
+be downloaded and used.
+
+### Update `CMakeLists.txt`
+
+Add the following Conan-specific lines to the `CMakeLists.txt` of your project:
+
+```cmake
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS)
+conan_target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
+```
+
+The command `conan_target_link_libraries` replaces `target_link_libraries`.
+
+### Run Conan
+
+Run `conan install` to install SOCI, and then build your project as usual:
+
+```bash
+mkdir build
+cd build
+conan install .. --build=soci
+cmake ..
+cmake . --build
+```
+
 ## Running tests
 
 The process of running regression tests highly depends on user's environment and build configuration, so it may be quite involving process.
